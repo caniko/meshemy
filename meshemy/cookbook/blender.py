@@ -26,7 +26,7 @@ class BlenderCookbook(BaseModel):
     def merge_close(self, distance_tol: float) -> None:
         merge_close(distance_tol, mesh_object_name=self.mesh_name)
 
-    def to_o3d(self, attempt_seal_insurance: bool = True) -> Open3dCookbook:
+    def to_o3d(self, attempt_seal_insurance: bool = False) -> Open3dCookbook:
         vertices, faces = vertices_and_faces(mesh_object_name=self.mesh_name)
         if attempt_seal_insurance:
             vertices, faces = seal_mesh(vertices, faces)
