@@ -1,9 +1,10 @@
+import logging
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 import numpy as np
 import open3d as o3d
-from pydantic import BaseModel
+from pydantic import BaseModel, FilePath
 from pydantic_numpy import NDArray
 
 from meshemy.blender.utils import load_mesh_from_o3d
@@ -12,6 +13,9 @@ from meshemy.utility.seal import seal_mesh
 
 if TYPE_CHECKING:
     from meshemy.cookbook.blender import BlenderCookbook
+
+
+logger = logging.getLogger(__file__)
 
 
 class Open3dCookbook(BaseModel):
@@ -25,6 +29,27 @@ class Open3dCookbook(BaseModel):
         if copy:
             self.__class__(mesh=result)
         self.mesh = result
+
+    def attempt_seal_insurance(self) -> bool:
+        # TODO: Fix crash
+        # Perform seal only if mesh is leaky, ie not watertight
+        if not self.watertight:
+            logger.debug(f"Attempting to seal mesh")
+            self.mesh = o3d_from_vertices_faces(*seal_mesh(self.vertices.copy(), self.faces.copy()))
+            if self.mesh.is_watertight():
+                logger.debug(f"The seal was success!")
+            else:
+                logger.debug(f"Failed to seal!")
+                return False
+        return True
+
+    def repair(self) -> None:
+        self.mesh = (
+            self.mesh.remove_duplicated_triangles()
+            .remove_duplicated_vertices()
+            .remove_degenerate_triangles()
+            .remove_unreferenced_vertices()
+        )
 
     @property
     def vertices(self) -> NDArray:
@@ -41,19 +66,6 @@ class Open3dCookbook(BaseModel):
     @property
     def watertight(self) -> bool:
         return self.mesh.is_watertight()
-
-    def attempt_seal_insurance(self) -> None:
-        # Perform seal only if mesh is leaky, ie not watertight
-        if not self.watertight:
-            self.mesh = o3d_from_vertices_faces(*seal_mesh(self.vertices, self.faces))
-
-    def repair(self) -> None:
-        self.mesh = (
-            self.mesh.remove_duplicated_triangles()
-            .remove_duplicated_vertices()
-            .remove_degenerate_triangles()
-            .remove_unreferenced_vertices()
-        )
 
     def to_blender(self, name: str) -> "BlenderCookbook":
         from meshemy.cookbook.blender import BlenderCookbook
@@ -74,3 +86,7 @@ class Open3dCookbook(BaseModel):
             write_vertex_colors=False,
             write_triangle_uvs=False,
         )
+
+    @classmethod
+    def from_file(cls, path: FilePath) -> "Open3dCookbook":
+        return cls(mesh=o3d.io.read_triangle_mesh(str(path)))

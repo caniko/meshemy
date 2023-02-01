@@ -3,7 +3,7 @@ from typing import Optional
 import bpy
 import numpy as np
 
-from meshemy.blender.shortcut import select_object, select_one_or_all
+from meshemy.blender.shortcut.select import select_object, select_one_or_all
 
 
 def planar_decimate_mesh(degrees: float = 1.0, mesh_object_name: Optional[str] = None) -> None:

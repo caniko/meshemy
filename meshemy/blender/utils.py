@@ -1,11 +1,11 @@
-import bmesh
 import bpy
+import bmesh
 import numpy as np
 import open3d as o3d
 from pydantic_numpy import NDArray, NDArrayFp64
 
-from meshemy.blender.shortcut import load_mesh_into_object
-from meshemy.blender.workflows import select_object
+from meshemy.blender.shortcut.io import load_mesh_into_object
+from meshemy.blender.shortcut.select import select_object
 from meshemy.utility.io import o3d_from_vertices_faces
 
 
