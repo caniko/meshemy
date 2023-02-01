@@ -74,15 +74,10 @@ class Open3dCookbook(BaseModel):
         return BlenderCookbook(mesh_name=name)
 
     def save(self, path: Path, mesh_format: str = ".glb") -> None:
-        open3d_triangular_mesh = (
-            self.mesh.remove_duplicated_triangles()
-            .remove_duplicated_vertices()
-            .remove_degenerate_triangles()
-            .remove_unreferenced_vertices()
-        )
+        self.repair()
         o3d.io.write_triangle_mesh(
             str(path.with_suffix(mesh_format)),
-            open3d_triangular_mesh,
+            self.mesh,
             write_vertex_colors=False,
             write_triangle_uvs=False,
         )

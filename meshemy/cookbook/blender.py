@@ -6,9 +6,9 @@ import numpy as np
 import open3d as o3d
 from pydantic import BaseModel, FilePath
 
-from meshemy.blender.constant import SUFFIX_TO_READER
+from meshemy.blender.constant import SUFFIX_TO_READER, SUFFIX_TO_WRITER
 from meshemy.blender.shortcut.io import load_mesh_into_object
-from meshemy.blender.shortcut.select import latest_mesh
+from meshemy.blender.shortcut.select import latest_mesh, select_object
 from meshemy.blender.utils import (
     load_mesh_from_o3d,
     vertices_and_faces,
@@ -32,6 +32,10 @@ class BlenderCookbook(BaseModel):
     def merge_close(self, distance_tol: float) -> None:
         merge_close(distance_tol, mesh_object_name=self.mesh_name)
         logger.debug(f"Merging proximal vertices on {self.mesh_name}, distance tolerance {distance_tol}")
+
+    def save(self, path: FilePath) -> None:
+        _ob = select_object(self.mesh_name)
+        SUFFIX_TO_WRITER[path.suffix](filepath=str(path))
 
     def to_o3d(self, attempt_seal_insurance: bool = False) -> Open3dCookbook:
         vertices, faces = vertices_and_faces(mesh_object_name=self.mesh_name)
