@@ -2,7 +2,10 @@ import bpy
 
 
 def empty_scene() -> None:
-    bpy.ops.scene.new(type="EMPTY")
+    blender_objects = bpy.data.objects
+
+    for obj in bpy.data.objects:
+        blender_objects.remove(obj, do_unlink=True)
 
 
 def load_mesh_into_object(name: str, mesh) -> None:
