@@ -1,5 +1,5 @@
 import logging
-from typing import Optional, Sequence
+from typing import TYPE_CHECKING, Optional, Sequence
 
 import bpy
 import numpy as np
@@ -9,15 +9,14 @@ from pydantic import BaseModel, FilePath
 from meshemy.blender.constant import SUFFIX_TO_READER, SUFFIX_TO_WRITER
 from meshemy.blender.shortcut.io import load_mesh_into_object
 from meshemy.blender.shortcut.select import latest_mesh, select_object
-from meshemy.blender.utils import (
-    load_mesh_from_o3d,
-    vertices_and_faces,
-)
+from meshemy.blender.utils import load_mesh_from_o3d, vertices_and_faces
 from meshemy.blender.workflows import merge_close, planar_decimate_mesh
-from meshemy.cookbook.open3d import Open3dCookbook
+from meshemy.utility.exception import open3d_module_not_installed_error
 from meshemy.utility.io import o3d_from_vertices_faces
 from meshemy.utility.seal import seal_mesh
 
+if TYPE_CHECKING:
+    from meshemy.cookbook.open3d import Open3dCookbook
 
 logger = logging.getLogger(__file__)
 
@@ -37,7 +36,12 @@ class BlenderCookbook(BaseModel):
         _ob = select_object(self.mesh_name)
         SUFFIX_TO_WRITER[path.suffix](filepath=str(path))
 
-    def to_o3d(self, attempt_seal_insurance: bool = False) -> Open3dCookbook:
+    def to_o3d(self, attempt_seal_insurance: bool = False) -> "Open3dCookbook":
+        try:
+            from meshemy.cookbook.open3d import Open3dCookbook
+        except ModuleNotFoundError as e:
+            open3d_module_not_installed_error(e)
+
         vertices, faces = vertices_and_faces(mesh_object_name=self.mesh_name)
         if attempt_seal_insurance:
             vertices, faces = seal_mesh(vertices, faces)

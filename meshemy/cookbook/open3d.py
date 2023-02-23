@@ -1,13 +1,21 @@
+from meshemy.utility.exception import (
+    blender_module_not_installed_error,
+    open3d_module_not_installed_error,
+)
+
+try:
+    import open3d as o3d
+except ModuleNotFoundError as e:
+    open3d_module_not_installed_error(e)
+
 import logging
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 import numpy as np
-import open3d as o3d
 from pydantic import BaseModel, FilePath
 from pydantic_numpy import NDArray
 
-from meshemy.blender.utils import load_mesh_from_o3d
 from meshemy.utility.io import o3d_from_vertices_faces
 from meshemy.utility.seal import seal_mesh
 
@@ -68,7 +76,11 @@ class Open3dCookbook(BaseModel):
         return self.mesh.is_watertight()
 
     def to_blender(self, name: str) -> "BlenderCookbook":
-        from meshemy.cookbook.blender import BlenderCookbook
+        try:
+            from meshemy.blender.utils import load_mesh_from_o3d
+            from meshemy.cookbook.blender import BlenderCookbook
+        except ModuleNotFoundError as e:
+            blender_module_not_installed_error(e)
 
         _ob = load_mesh_from_o3d(self.mesh, name)
         return BlenderCookbook(mesh_name=name)

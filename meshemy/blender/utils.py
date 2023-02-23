@@ -1,5 +1,5 @@
-import bpy
 import bmesh
+import bpy
 import numpy as np
 import open3d as o3d
 from pydantic_numpy import NDArray, NDArrayFp64

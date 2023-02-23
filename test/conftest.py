@@ -1,10 +1,10 @@
 import os
+from test import GLB_MESH_PATH, SAVE_TEST_PATH
 
 import pytest
 
 from meshemy.cookbook.blender import BlenderCookbook
 from meshemy.cookbook.open3d import Open3dCookbook
-from test import GLB_MESH_PATH, SAVE_TEST_PATH
 
 
 @pytest.fixture(scope="function")

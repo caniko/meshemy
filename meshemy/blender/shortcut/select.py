@@ -20,7 +20,7 @@ def select_one_or_all(name: Optional[str] = None) -> Any:
 
 
 def all_meshes_in_scene() -> OrderedSet:
-    return OrderedSet([o for o in bpy.context.scene.objects if o.type == 'MESH'])
+    return OrderedSet([o for o in bpy.context.scene.objects if o.type == "MESH"])
 
 
 def latest_mesh():
