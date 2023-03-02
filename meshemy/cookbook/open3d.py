@@ -1,36 +1,41 @@
-from meshemy.utility.exception import (
-    blender_module_not_installed_error,
-    open3d_module_not_installed_error,
-)
+from functools import partial
+
+from pydantic.generics import GenericModel
 
 try:
     import open3d as o3d
 except ModuleNotFoundError as e:
+    from meshemy.utility.exception import open3d_module_not_installed_error
+
     open3d_module_not_installed_error(e)
 
 import logging
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 import numpy as np
-from pydantic import BaseModel, FilePath
-from pydantic_numpy import NDArray
+from pydantic_numpy import NDArray, NDArrayFp64
 
+from meshemy.cookbook.base import BaseCookbook, MeshIsObjectMixin
 from meshemy.utility.io import o3d_from_vertices_faces
 from meshemy.utility.seal import seal_mesh
-
-if TYPE_CHECKING:
-    from meshemy.cookbook.blender import BlenderCookbook
-
 
 logger = logging.getLogger(__file__)
 
 
-class Open3dCookbook(BaseModel):
-    mesh: o3d.geometry.TriangleMesh
+class Open3dCookbook(BaseCookbook, MeshIsObjectMixin[o3d.geometry.TriangleMesh]):
+    mesh_from_file_loader = o3d.io.read_triangle_mesh
 
-    class Config:
-        arbitrary_types_allowed = True
+    @property
+    def vertices_numpy_array(self) -> NDArrayFp64 | None:
+        return np.asarray(self.mesh.vertices)
+
+    @property
+    def edges_numpy_array(self) -> NDArray | None:
+        return logger.debug("Open3D does not expose the edges of its mesh")
+
+    @property
+    def faces_numpy_array(self) -> NDArray | None:
+        return np.asarray(self.triangles)
 
     def smoothen(self, iterations: int, copy: bool = False) -> None:
         result = self.mesh.filter_smooth_taubin(number_of_iterations=iterations)
@@ -75,25 +80,14 @@ class Open3dCookbook(BaseModel):
     def watertight(self) -> bool:
         return self.mesh.is_watertight()
 
-    def to_blender(self, name: str) -> "BlenderCookbook":
-        try:
-            from meshemy.blender.utils import load_mesh_from_o3d
-            from meshemy.cookbook.blender import BlenderCookbook
-        except ModuleNotFoundError as e:
-            blender_module_not_installed_error(e)
-
-        _ob = load_mesh_from_o3d(self.mesh, name)
-        return BlenderCookbook(mesh_name=name)
-
-    def save(self, path: Path, mesh_format: str = ".glb") -> None:
-        self.repair()
+    def save(self, save_path: Path | str) -> None:
         o3d.io.write_triangle_mesh(
-            str(path.with_suffix(mesh_format)),
+            str(save_path),
             self.mesh,
             write_vertex_colors=False,
             write_triangle_uvs=False,
         )
 
     @classmethod
-    def from_file(cls, path: FilePath) -> "Open3dCookbook":
-        return cls(mesh=o3d.io.read_triangle_mesh(str(path)))
+    def from_data(cls, vertices: NDArrayFp64, faces: NDArray) -> "Open3dCookbook":
+        return cls(mesh=o3d_from_vertices_faces(vertices, faces))

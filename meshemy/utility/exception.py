@@ -6,6 +6,10 @@ class Open3DNotInstalledError(ModuleNotFoundError):
     pass
 
 
+class PyMeshNotInstalledError(ModuleNotFoundError):
+    pass
+
+
 def blender_module_not_installed_error(e):
     raise BlenderNotInstalledError(
         """
@@ -22,5 +26,15 @@ def open3d_module_not_installed_error(e):
         Open3D module must be installed.
 
         Please run `pip install meshemy[open3d]`
+        """
+    ) from e
+
+
+def pymesh_module_not_installed_error(e):
+    raise PyMeshNotInstalledError(
+        """
+        PyMesh module must be installed.
+
+        Please run `pip install meshemy[pymesh]`
         """
     ) from e
