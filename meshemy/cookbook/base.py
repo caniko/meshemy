@@ -59,14 +59,6 @@ class BaseCookbook(BaseModel, ABC):
             self.vertices_numpy_array, self.edges_numpy_array, self.faces_numpy_array, name
         )
 
-    def to_pymesh(self) -> "PyMeshCookbook":
-        from meshemy.cookbook.pymesh import PyMeshCookbook
-
-        if isinstance(self, PyMeshCookbook):
-            return self
-
-        return PyMeshCookbook.from_data(self.vertices_numpy_array, self.faces_numpy_array)
-
 
 T = TypeVar("T")
 

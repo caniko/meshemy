@@ -1904,6 +1904,26 @@ docs = ["myst-parser", "pydata-sphinx-theme", "sphinx"]
 test = ["argcomplete (>=2.0)", "pre-commit", "pytest", "pytest-mock"]
 
 [[package]]
+name = "trimesh"
+version = "3.20.2"
+description = "Import, export, process, analyze and view triangular meshes."
+category = "main"
+optional = false
+python-versions = "*"
+files = [
+    {file = "trimesh-3.20.2-py3-none-any.whl", hash = "sha256:3465ee65a35f958fcefe9ab2a3c636c088cb4ccc3951ec7fd72368f7efcf1525"},
+    {file = "trimesh-3.20.2.tar.gz", hash = "sha256:ead4ab5a8be055311c7037a5505af0f04d6087288f994b040125bc9063d40613"},
+]
+
+[package.dependencies]
+numpy = "*"
+
+[package.extras]
+all = ["chardet", "colorlog", "glooey", "jsonschema", "lxml", "mapbox-earcut", "meshio", "msgpack", "networkx", "pillow", "psutil", "pycollada", "pyglet (<2)", "python-fcl", "requests", "rtree", "scikit-image", "scipy", "setuptools", "shapely", "svg.path", "sympy", "xatlas", "xxhash"]
+easy = ["chardet", "colorlog", "jsonschema", "lxml", "mapbox-earcut", "msgpack", "networkx", "pillow", "pycollada", "requests", "rtree", "scipy", "setuptools", "shapely", "svg.path", "sympy", "xxhash"]
+test = ["autopep8", "coveralls", "ezdxf", "pyinstrument", "pytest", "pytest-cov", "ruff"]
+
+[[package]]
 name = "typing-extensions"
 version = "4.5.0"
 description = "Backported and Experimental Type Hints for Python 3.7+"
@@ -2063,4 +2083,4 @@ open3d = ["open3d"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.11.0"
-content-hash = "3bb541592330173d0d3187d28a60d928c69e86ffa59777989bf93d626dc1e214"
+content-hash = "8f2052a0b9b374380d117c976a39c6ba3633bea2ae57de7feb6f9303601ac194"
