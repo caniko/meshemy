@@ -1,15 +1,13 @@
 import logging
-from functools import cached_property
 from typing import Optional
 
-import numpy as np
 import bpy
+import numpy as np
 from bmesh.types import BMesh
 from pydantic import FilePath
 from pydantic_numpy import NDArray, NDArrayFp64
 
 from meshemy.blender.constant import SUFFIX_TO_READER, SUFFIX_TO_WRITER
-from meshemy.blender.shortcut.io import load_mesh_into_object
 from meshemy.blender.shortcut.select import latest_mesh, select_object
 from meshemy.blender.utils import load_mesh_from_numpy_arrays, triangular_bmesh
 from meshemy.blender.workflows import merge_close, planar_decimate_mesh
@@ -43,6 +41,13 @@ class BlenderCookbook(BaseCookbook):
     @property
     def faces_numpy_array(self) -> NDArray | None:
         return np.array([[v.index for v in f.verts] for f in self.triangular_bmesh.faces])
+
+    @property
+    def watertight(self) -> bool:
+        for edge in self.triangular_bmesh.edges:
+            if len(edge.link_faces) != 2:
+                return False
+        return True
 
     def planar_decimate(self, degree_tol: float) -> None:
         planar_decimate_mesh(degree_tol, mesh_object_name=self.mesh_name)

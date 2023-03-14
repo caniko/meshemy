@@ -5,7 +5,7 @@ import numpy as np
 import pymesh
 from pydantic_numpy import NDArray, NDArrayFp64
 
-from meshemy.cookbook.base import MeshIsObjectMixin, BaseCookbook
+from meshemy.cookbook.base import BaseCookbook, MeshIsObjectMixin
 from meshemy.pymesh.fix_mesh import pymesh_fix_mesh
 
 

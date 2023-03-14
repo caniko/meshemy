@@ -1,12 +1,9 @@
 import bmesh
 import bpy
-import numpy as np
-import open3d as o3d
 from pydantic_numpy import NDArray, NDArrayFp64
 
 from meshemy.blender.shortcut.io import load_mesh_into_object
 from meshemy.blender.shortcut.select import select_object
-from meshemy.utility.io import o3d_from_vertices_faces
 
 
 def load_mesh_from_numpy_arrays(
@@ -16,7 +13,7 @@ def load_mesh_from_numpy_arrays(
 
     # https://b3d.interplanety.org/en/how-to-create-mesh-through-the-blender-python-api/
     blender_mesh = bpy.data.meshes.new(f"{name}mesh")
-    blender_mesh.from_pydata(vertices, edges or (), faces or ())
+    blender_mesh.from_pydata(vertices, () if edges is None else edges, () if faces is None else faces)
     blender_mesh.update()
 
     return load_mesh_into_object(name, blender_mesh)
