@@ -1,7 +1,3 @@
-from functools import partial
-
-from pydantic.generics import GenericModel
-
 try:
     import open3d as o3d
 except ModuleNotFoundError as e:
@@ -17,7 +13,6 @@ from pydantic_numpy import NDArray, NDArrayFp64
 
 from meshemy.cookbook.base import BaseCookbook, MeshIsObjectMixin
 from meshemy.utility.io import o3d_from_vertices_faces
-from meshemy.utility.seal import seal_mesh
 
 logger = logging.getLogger(__file__)
 
@@ -42,19 +37,6 @@ class Open3dCookbook(BaseCookbook, MeshIsObjectMixin[o3d.geometry.TriangleMesh])
         if copy:
             self.__class__(mesh=result)
         self.mesh = result
-
-    def attempt_seal_insurance(self) -> bool:
-        # TODO: Fix crash
-        # Perform seal only if mesh is leaky, ie not watertight
-        if not self.watertight:
-            logger.debug(f"Attempting to seal mesh")
-            self.mesh = o3d_from_vertices_faces(*seal_mesh(self.vertices.copy(), self.faces.copy()))
-            if self.mesh.is_watertight():
-                logger.debug(f"The seal was success!")
-            else:
-                logger.debug(f"Failed to seal!")
-                return False
-        return True
 
     def repair(self) -> None:
         self.mesh = (

@@ -1,11 +1,11 @@
 import os
-
 from test import GLB_MESH_PATH, SAVE_TEST_PATH
 
 import pytest
 
 from meshemy.cookbook.blender import BlenderCookbook
 from meshemy.cookbook.open3d import Open3dCookbook
+from meshemy.cookbook.trimesh import TrimeshCookbook
 
 
 @pytest.fixture(scope="function")
@@ -16,6 +16,11 @@ def blender_cookbook():
 @pytest.fixture(scope="function")
 def open3d_cookbook():
     return Open3dCookbook.from_file(GLB_MESH_PATH)
+
+
+@pytest.fixture(scope="function")
+def trimesh_cookbook():
+    return TrimeshCookbook.from_file(GLB_MESH_PATH)
 
 
 @pytest.fixture(scope="function")
