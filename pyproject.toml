@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "meshemy"
-version = "1.1.0"
+version = "1.1.5"
 description = "Developer friendly suite for manipulating mesh"
 authors = ["caniko <canhtart@gmail.com>"]
 readme = "README.md"
@@ -21,10 +21,11 @@ pymeshfix = "^0.16.2"
 ordered-set = "^4.1.0"
 
 [tool.poetry.group.dev.dependencies]
+pytest = "*"
+
 bpy = "*"
 open3d-cpu = "*"
 trimesh = "*"
-pytest = "*"
 
 [tool.poetry.extras]
 full = ["bpy", "open3d-cpu", "trimesh"]

@@ -22,7 +22,7 @@ def load_mesh_from_numpy_arrays(
 def triangular_bmesh(mesh_object_name: str) -> tuple[NDArrayFp64, NDArray, NDArray]:
     _ob = select_object(mesh_object_name)
 
-    bpy.ops.object.mode_set(mode="EDIT")
+    safely_enter_mode("EDIT")
     bpy.ops.mesh.quads_convert_to_tris(quad_method="BEAUTY")
     bpy.ops.object.mode_set(mode="OBJECT")
 
@@ -30,3 +30,11 @@ def triangular_bmesh(mesh_object_name: str) -> tuple[NDArrayFp64, NDArray, NDArr
     bm.from_mesh(select_object(mesh_object_name).data)
 
     return bm
+
+
+def safely_enter_mode(mode_name: str) -> None:
+    try:
+        bpy.ops.object.mode_set(mode=mode_name)
+    except RuntimeError:
+        # Happens if we are in object mode already
+        pass

@@ -4,12 +4,13 @@ import bpy
 import numpy as np
 
 from meshemy.blender.shortcut.select import select_object, select_one_or_all
+from meshemy.blender.utils import safely_enter_mode
 
 
 def planar_decimate_mesh(degrees: float = 1.0, mesh_object_name: Optional[str] = None) -> None:
     ob = select_object(mesh_object_name)
 
-    bpy.ops.object.mode_set(mode="OBJECT")
+    safely_enter_mode("OBJECT")
 
     bpy.ops.object.modifier_add(type="DECIMATE")
     ob.modifiers["Decimate"].decimate_type = "DISSOLVE"

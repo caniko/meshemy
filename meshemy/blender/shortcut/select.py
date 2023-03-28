@@ -3,9 +3,11 @@ from typing import Any, Optional
 import bpy
 from ordered_set import OrderedSet
 
+from meshemy.blender.utils import safely_enter_mode
+
 
 def select_object(name: str):
-    bpy.ops.object.mode_set(mode="OBJECT")
+    safely_enter_mode("OBJECT")
     ob = bpy.context.scene.objects[name]
     bpy.ops.object.select_all(action="DESELECT")  # Deselect all objects
     bpy.context.view_layer.objects.active = ob  # Make the cube the active object
