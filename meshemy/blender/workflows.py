@@ -24,3 +24,43 @@ def merge_close(tolerance: float = 0.01, mesh_object_name: Optional[str] = None)
 
     bpy.ops.object.mode_set(mode="EDIT")
     bpy.ops.mesh.remove_doubles(threshold=tolerance)
+
+
+def add_simple_material(mesh_name: str, color: tuple[float, float, float, float]) -> None:
+    mesh_object = bpy.data.objects.get(mesh_name)
+
+    # Create a new material
+    material = bpy.data.materials.new(name=f"{mesh_name}_material")
+
+    # Enable 'Use Nodes' for the material
+    material.use_nodes = True
+
+    # Access the material's node tree
+    nodes = material.node_tree.nodes
+    links = material.node_tree.links
+
+    # Clear existing nodes
+    nodes.clear()
+
+    # Create Principled BSDF shader node
+    shader_node = nodes.new(type="ShaderNodeBsdfPrincipled")
+    shader_node.location = (0, 0)
+
+    # Set the color of the shader node. Define the color as an RGBA tuple (red, green, blue, alpha)
+    shader_node.inputs["Base Color"].default_value = color
+
+    # Create Output node
+    output_node = nodes.new(type="ShaderNodeOutputMaterial")
+    output_node.location = (300, 0)
+
+    # Link the shader node to the output node
+    links.new(shader_node.outputs["BSDF"], output_node.inputs["Surface"])
+
+    if mesh_object is not None:
+        # Add the material to the mesh object
+        if mesh_object.data.materials:
+            mesh_object.data.materials[0] = material
+        else:
+            mesh_object.data.materials.append(material)
+    else:
+        print(f"No object named '{mesh_name}' found in the scene.")

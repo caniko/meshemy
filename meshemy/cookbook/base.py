@@ -2,13 +2,12 @@ import logging
 from abc import ABC, abstractmethod
 from functools import cached_property
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, ClassVar, Generic, TypeVar
+from typing import TYPE_CHECKING, Any, Callable, ClassVar, Generic, TypeVar, Union
 
+import pymeshfix
 from pydantic import BaseModel, FilePath
 from pydantic.generics import GenericModel
 from pydantic_numpy import NDArray, NDArrayFp64
-
-from meshemy.utility.seal import seal_mesh
 
 if TYPE_CHECKING:
     from meshemy.cookbook.blender import BlenderCookbook
@@ -53,20 +52,22 @@ class BaseCookbook(BaseModel, ABC):
     def save(self, save_path: Path | str) -> None:
         ...
 
-    def attempt_seal_insurance(self) -> bool:
-        # TODO: Fix crash
+    def attempt_seal(self) -> Union["Cookbook", None]:
         # Perform seal only if mesh is leaky, ie not watertight
         if not self.watertight:
             logger.debug("Mesh is leaky, attempting to seal mesh")
-            self.mesh = self.from_data(*seal_mesh(self.vertices_numpy_array.copy(), self.faces_numpy_array.copy()))
-            if self.mesh.is_watertight():
+            fixed_vertices, fixed_faces = pymeshfix.clean_from_arrays(
+                self.vertices_numpy_array.copy(), self.faces_numpy_array.copy(), verbose=False
+            )
+            new = self.__class__.from_data(vertices=fixed_vertices, faces=fixed_faces)
+
+            if new.is_watertight():
                 logger.debug("The seal was success!")
+                return new
             else:
                 logger.debug("Failed to seal!")
-                return False
         else:
             logger.debug("Mesh is watertight, no action performed")
-        return True
 
     def to_blender(self, name: str) -> "BlenderCookbook":
         from meshemy.cookbook.blender import BlenderCookbook

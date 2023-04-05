@@ -1,3 +1,4 @@
+from functools import cached_property
 from typing import Sequence
 
 try:
@@ -43,9 +44,13 @@ class TrimeshCookbook(BaseCookbook, MeshIsObjectMixin[trimesh.Trimesh]):
     def faces_numpy_array(self) -> NDArray | None:
         return np.array(self.mesh.faces)
 
-    @property
+    @cached_property
     def watertight(self) -> bool:
         return self.mesh.is_watertight
+
+    @classmethod
+    def from_data(cls, vertices: NDArray, faces: NDArray | None) -> "TrimeshCookbook":
+        return cls(mesh=trimesh.Trimesh(vertices=vertices, faces=faces))
 
     def save(self, save_path: Path | str) -> None:
         self.mesh.export(save_path)

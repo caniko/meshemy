@@ -3,7 +3,6 @@ import bpy
 from pydantic_numpy import NDArray, NDArrayFp64
 
 from meshemy.blender.shortcut.io import load_mesh_into_object
-from meshemy.blender.shortcut.select import select_object
 
 
 def load_mesh_from_numpy_arrays(
@@ -12,14 +11,17 @@ def load_mesh_from_numpy_arrays(
     assert edges is not None or faces is not None
 
     # https://b3d.interplanety.org/en/how-to-create-mesh-through-the-blender-python-api/
-    blender_mesh = bpy.data.meshes.new(f"{name}mesh")
-    blender_mesh.from_pydata(vertices, () if edges is None else edges, () if faces is None else faces)
-    blender_mesh.update()
-
-    return load_mesh_into_object(name, blender_mesh)
+    mesh_data = bpy.data.meshes.new(name)
+    mesh_data.from_pydata(
+        vertices.tolist(), () if edges is None else edges.tolist(), () if faces is None else faces.tolist()
+    )
+    mesh_obj = bpy.data.objects.new(name, mesh_data)
+    bpy.context.collection.objects.link(mesh_obj)
 
 
 def triangular_bmesh(mesh_object_name: str) -> tuple[NDArrayFp64, NDArray, NDArray]:
+    from meshemy.blender.shortcut.select import select_object
+
     _ob = select_object(mesh_object_name)
 
     safely_enter_mode("EDIT")

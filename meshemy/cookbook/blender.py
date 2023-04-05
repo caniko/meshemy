@@ -1,4 +1,5 @@
 import logging
+from functools import cached_property
 from typing import Optional
 
 import bpy
@@ -10,7 +11,7 @@ from pydantic_numpy import NDArray, NDArrayFp64
 from meshemy.blender.constant import SUFFIX_TO_READER, SUFFIX_TO_WRITER
 from meshemy.blender.shortcut.select import latest_mesh, select_object
 from meshemy.blender.utils import load_mesh_from_numpy_arrays, triangular_bmesh
-from meshemy.blender.workflows import merge_close, planar_decimate_mesh
+from meshemy.blender.workflows import merge_close, planar_decimate_mesh, add_simple_material
 from meshemy.cookbook.base import BaseCookbook
 
 logger = logging.getLogger(__file__)
@@ -42,7 +43,7 @@ class BlenderCookbook(BaseCookbook):
     def faces_numpy_array(self) -> NDArray | None:
         return np.array([[v.index for v in f.verts] for f in self.triangular_bmesh.faces])
 
-    @property
+    @cached_property
     def watertight(self) -> bool:
         for edge in self.triangular_bmesh.edges:
             if len(edge.link_faces) != 2:
@@ -53,6 +54,10 @@ class BlenderCookbook(BaseCookbook):
         planar_decimate_mesh(degree_tol, mesh_object_name=self.mesh_name)
         logger.debug(f"Planar decimation on {self.mesh_name}, degree tolerance {degree_tol}")
         self.reset_bm()
+
+    def add_simple_material(self, color: tuple[float, float, float, float]) -> None:
+        # Define the color as an RGBA tuple (red, green, blue, alpha)
+        add_simple_material(self.mesh_name, color)
 
     def merge_close(self, distance_tol: float) -> None:
         merge_close(distance_tol, mesh_object_name=self.mesh_name)

@@ -1,3 +1,5 @@
+from functools import cached_property
+
 try:
     import open3d as o3d
 except ModuleNotFoundError as e:
@@ -58,7 +60,7 @@ class Open3dCookbook(BaseCookbook, MeshIsObjectMixin[o3d.geometry.TriangleMesh])
     def triangles(self) -> NDArray:
         return self.faces
 
-    @property
+    @cached_property
     def watertight(self) -> bool:
         return self.mesh.is_watertight()
 
