@@ -3,10 +3,10 @@ from test import SAVE_TEST_PATH
 
 import pytest
 
-from meshemy.cookbook.base import Cookbook
+from meshemy.cookbook.base import BaseCookbook
 
 
-def _dynamic_fixture(request, cookbook_fixture: str) -> Cookbook:
+def _dynamic_fixture(request, cookbook_fixture: str) -> BaseCookbook:
     return request.getfixturevalue(cookbook_fixture)
 
 

@@ -1,9 +1,9 @@
-from typing import Callable, Type
+from typing import Callable
 
 
 def _raise_not_installed_error_callable(
-    exception_class: Type[Exception], name: str, extras_name: str
-) -> Callable[[], None]:
+    exception_class: type[Exception], name: str, extras_name: str
+) -> Callable[[Exception], None]:
     def raise_not_installed_error(e: Exception) -> None:
         raise exception_class(
             f"""

@@ -3,31 +3,36 @@ from typing import Optional
 import bpy
 import numpy as np
 
-from meshemy.blender.shortcut.select import select_object, select_one_or_all
+from meshemy.blender.shortcut.select import (
+    get_object_by_name,
+    select_one_or_all,
+    set_object_active_by_name,
+)
 from meshemy.blender.utils import safely_enter_mode
 
 
 def planar_decimate_mesh(degrees: float = 1.0, mesh_object_name: Optional[str] = None) -> None:
-    ob = select_object(mesh_object_name)
+    if mesh_object_name:
+        obj = set_object_active_by_name(mesh_object_name)
 
     safely_enter_mode("OBJECT")
 
     bpy.ops.object.modifier_add(type="DECIMATE")
-    ob.modifiers["Decimate"].decimate_type = "DISSOLVE"
-    ob.modifiers["Decimate"].angle_limit = np.deg2rad(degrees)
+    obj.modifiers["Decimate"].decimate_type = "DISSOLVE"
+    obj.modifiers["Decimate"].angle_limit = np.deg2rad(degrees)
 
     bpy.ops.object.modifier_apply(modifier="Decimate")
 
 
 def merge_close(tolerance: float = 0.01, mesh_object_name: Optional[str] = None) -> None:
-    _ob = select_one_or_all(mesh_object_name)
+    select_one_or_all(mesh_object_name)
 
     bpy.ops.object.mode_set(mode="EDIT")
     bpy.ops.mesh.remove_doubles(threshold=tolerance)
 
 
 def add_simple_material(mesh_name: str, color: tuple[float, float, float, float]) -> None:
-    mesh_object = bpy.data.objects.get(mesh_name)
+    mesh_object = get_object_by_name(mesh_name)
 
     # Create a new material
     material = bpy.data.materials.new(name=f"{mesh_name}_material")

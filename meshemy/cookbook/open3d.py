@@ -1,5 +1,8 @@
 from functools import cached_property
 
+from pydantic import computed_field
+from pydantic_numpy.typing import NpNDArrayFp64
+
 try:
     import open3d as o3d
 except ModuleNotFoundError as e:
@@ -11,7 +14,7 @@ import logging
 from pathlib import Path
 
 import numpy as np
-from pydantic_numpy import NDArray, NDArrayFp64
+from pydantic_numpy import NpNDArray
 
 from meshemy.cookbook.base import BaseCookbook, MeshIsObjectMixin
 from meshemy.utility.io import o3d_from_vertices_faces
@@ -22,16 +25,19 @@ logger = logging.getLogger(__file__)
 class Open3dCookbook(BaseCookbook, MeshIsObjectMixin[o3d.geometry.TriangleMesh]):
     mesh_from_file_loader = o3d.io.read_triangle_mesh
 
+    @computed_field(return_type=NpNDArrayFp64 | None)  # type: ignore[misc]
     @property
-    def vertices_numpy_array(self) -> NDArrayFp64 | None:
+    def vertices_numpy_array(self) -> NpNDArrayFp64 | None:
         return np.asarray(self.mesh.vertices)
 
+    @computed_field(return_type=NpNDArray | None)  # type: ignore[misc]
     @property
-    def edges_numpy_array(self) -> NDArray | None:
-        return logger.debug("Open3D does not expose the edges of its mesh")
+    def edges_numpy_array(self) -> None:
+        return None
 
+    @computed_field(return_type=NpNDArray | None)  # type: ignore[misc]
     @property
-    def faces_numpy_array(self) -> NDArray | None:
+    def faces_numpy_array(self) -> NpNDArray | None:
         return np.asarray(self.triangles)
 
     def smoothen(self, iterations: int, copy: bool = False) -> None:
@@ -48,16 +54,19 @@ class Open3dCookbook(BaseCookbook, MeshIsObjectMixin[o3d.geometry.TriangleMesh])
             .remove_unreferenced_vertices()
         )
 
+    @computed_field(return_type=NpNDArray)  # type: ignore[misc]
     @property
-    def vertices(self) -> NDArray:
+    def vertices(self) -> NpNDArray:
         return np.asarray(self.mesh.vertices)
 
+    @computed_field(return_type=NpNDArray)  # type: ignore[misc]
     @property
-    def faces(self) -> NDArray:
+    def faces(self) -> NpNDArray:
         return np.asarray(self.mesh.triangles)
 
+    @computed_field(return_type=NpNDArray)  # type: ignore[misc]
     @property
-    def triangles(self) -> NDArray:
+    def triangles(self) -> NpNDArray:
         return self.faces
 
     @cached_property
@@ -73,5 +82,5 @@ class Open3dCookbook(BaseCookbook, MeshIsObjectMixin[o3d.geometry.TriangleMesh])
         )
 
     @classmethod
-    def from_data(cls, vertices: NDArrayFp64, faces: NDArray) -> "Open3dCookbook":
+    def from_data(cls, vertices: NpNDArrayFp64, faces: NpNDArray) -> "Open3dCookbook":
         return cls(mesh=o3d_from_vertices_faces(vertices, faces))

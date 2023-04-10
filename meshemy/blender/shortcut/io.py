@@ -1,4 +1,8 @@
 import bpy
+from pydantic_numpy import NpNDArray
+from pydantic_numpy.typing import NpNDArrayFp64
+
+from meshemy.blender.utils import link_mesh_into_object
 
 
 def delete_everything() -> None:
@@ -28,15 +32,15 @@ def delete_everything() -> None:
         bpy.data.materials.remove(material)
 
 
-def load_mesh_into_object(name: str, mesh, with_collection: bool = False) -> None:
-    # make object from mesh
-    new_object = bpy.data.objects.new(name, mesh)
+def load_mesh_from_numpy_arrays(
+    vertices: NpNDArrayFp64, edges: NpNDArray | None, faces: NpNDArray | None, name: str = "new_object"
+):
+    assert edges is not None or faces is not None
 
-    if with_collection:
-        new_collection = bpy.data.collections.new("Collection")
-        bpy.context.scene.collection.children.link(new_collection)
-
-        # add object to scene collection
-        new_collection.objects.link(new_object)
-
-    return new_object
+    # https://b3d.interplanety.org/en/how-to-create-mesh-through-the-blender-python-api/
+    mesh_data = bpy.data.meshes.new(name)
+    mesh_data.from_pydata(
+        vertices.tolist(), () if edges is None else edges.tolist(), () if faces is None else faces.tolist()
+    )
+    link_mesh_into_object(name, mesh_data)
+    return mesh_data
