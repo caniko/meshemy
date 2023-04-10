@@ -1,6 +1,8 @@
 from functools import cached_property
 from typing import Sequence
 
+from pydantic_numpy.typing import NpNDArrayFp64
+
 try:
     import trimesh
 except ModuleNotFoundError as e:
@@ -14,8 +16,8 @@ except ModuleNotFoundError as e:
 from pathlib import Path
 
 import numpy as np
-from pydantic import FilePath
-from pydantic_numpy import NDArray, NDArrayFp64
+from pydantic import FilePath, computed_field
+from pydantic_numpy import NpNDArray
 
 from meshemy.cookbook.base import BaseCookbook, MeshIsObjectMixin
 
@@ -32,16 +34,19 @@ def _load_trimesh(path_to_file: FilePath) -> trimesh.Trimesh:
 class TrimeshCookbook(BaseCookbook, MeshIsObjectMixin[trimesh.Trimesh]):
     mesh_from_file_loader = _load_trimesh
 
+    @computed_field(return_type=NpNDArrayFp64 | None)  # type: ignore[misc]
     @property
-    def vertices_numpy_array(self) -> NDArrayFp64 | None:
+    def vertices_numpy_array(self) -> NpNDArrayFp64 | None:
         return np.array(self.mesh.vertices)
 
+    @computed_field(return_type=NpNDArray | None)  # type: ignore[misc]
     @property
-    def edges_numpy_array(self) -> NDArray | None:
+    def edges_numpy_array(self) -> NpNDArray | None:
         return np.array(self.mesh.edges)
 
+    @computed_field(return_type=NpNDArray | None)  # type: ignore[misc]
     @property
-    def faces_numpy_array(self) -> NDArray | None:
+    def faces_numpy_array(self) -> NpNDArray | None:
         return np.array(self.mesh.faces)
 
     @cached_property
@@ -49,11 +54,11 @@ class TrimeshCookbook(BaseCookbook, MeshIsObjectMixin[trimesh.Trimesh]):
         return self.mesh.is_watertight
 
     @classmethod
-    def from_data(cls, vertices: NDArray, faces: NDArray | None) -> "TrimeshCookbook":
+    def from_data(cls, vertices: NpNDArray, faces: NpNDArray | None) -> "TrimeshCookbook":
         return cls(mesh=trimesh.Trimesh(vertices=vertices, faces=faces))
 
     def save(self, save_path: Path | str) -> None:
         self.mesh.export(save_path)
 
-    def contains(self, vertices: Sequence[NDArray]) -> bool:
-        return np.all(self.mesh.contains(vertices))
+    def contains(self, vertices: Sequence[NpNDArray]) -> bool:
+        return bool(np.all(self.mesh.contains(vertices)))

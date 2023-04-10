@@ -1,13 +1,12 @@
 import logging
 from abc import ABC, abstractmethod
-from functools import cached_property
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, ClassVar, Generic, TypeVar, Union
 
 import pymeshfix
 from pydantic import BaseModel, FilePath
-from pydantic.generics import GenericModel
-from pydantic_numpy import NDArray, NDArrayFp64
+from pydantic_numpy import NpNDArray
+from pydantic_numpy.typing import NpNDArrayFp64
 
 if TYPE_CHECKING:
     from meshemy.cookbook.blender import BlenderCookbook
@@ -17,29 +16,25 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__file__)
 
 
-class BaseCookbook(BaseModel, ABC):
+class BaseCookbook(BaseModel, ABC, arbitrary_types_allowed=True):   # type: ignore[call-arg]
     """
     The .from_data() and .from_file() class method also needs to be implemented, I did not make it an abstractmethod
-    because each Cookbook has its own function signature.
+    because each BaseCookbook has its own function signature.
     """
 
-    class Config:
-        arbitrary_types_allowed = True
-        keep_untouched = (cached_property,)
-
     @property
     @abstractmethod
-    def vertices_numpy_array(self) -> NDArrayFp64 | None:
+    def vertices_numpy_array(self) -> NpNDArrayFp64 | None:
         ...
 
     @property
     @abstractmethod
-    def edges_numpy_array(self) -> NDArray | None:
+    def edges_numpy_array(self) -> NpNDArray | None:
         ...
 
     @property
     @abstractmethod
-    def faces_numpy_array(self) -> NDArray | None:
+    def faces_numpy_array(self) -> NpNDArray | None:
         ...
 
     @property
@@ -52,7 +47,7 @@ class BaseCookbook(BaseModel, ABC):
     def save(self, save_path: Path | str) -> None:
         ...
 
-    def attempt_seal(self) -> Union["Cookbook", None]:
+    def attempt_seal(self):
         # Perform seal only if mesh is leaky, ie not watertight
         if not self.watertight:
             logger.debug("Mesh is leaky, attempting to seal mesh")
@@ -69,14 +64,18 @@ class BaseCookbook(BaseModel, ABC):
         else:
             logger.debug("Mesh is watertight, no action performed")
 
-    def to_blender(self, name: str) -> "BlenderCookbook":
+    def to_blender(self, name: str, **kwargs) -> "BlenderCookbook":
         from meshemy.cookbook.blender import BlenderCookbook
 
         if isinstance(self, BlenderCookbook):
             return self
 
         return BlenderCookbook.from_data(
-            self.vertices_numpy_array, self.edges_numpy_array, self.faces_numpy_array, name
+            vertices=self.vertices_numpy_array,
+            edges=self.edges_numpy_array,
+            faces=self.faces_numpy_array,
+            name=name,
+            **kwargs,
         )
 
     def to_o3d(self) -> "Open3dCookbook":
@@ -96,25 +95,21 @@ class BaseCookbook(BaseModel, ABC):
         return TrimeshCookbook.from_data(self.vertices_numpy_array, self.faces_numpy_array)
 
 
-Cookbook = TypeVar("Cookbook", bound=BaseCookbook)
 T = TypeVar("T")
 
 
-class MeshIsObjectMixin(GenericModel, Generic[T]):
+class MeshIsObjectMixin(BaseModel, Generic[T]):
     mesh: T
 
-    mesh_from_file_loader: ClassVar[Callable[[str], Any]] = ...
+    mesh_from_file_loader: ClassVar[Callable[[str], Any]]
 
     class Config:
         arbitrary_types_allowed = True
 
     @classmethod
-    def from_native(cls, mesh: T) -> "MeshIsObjectCookbook":
+    def from_native(cls, mesh: T) -> "MeshIsObjectMixin":
         return cls(mesh=mesh)
 
     @classmethod
-    def from_file(cls, file_path: FilePath | str) -> "MeshIsObjectCookbook":
+    def from_file(cls, file_path: FilePath | str) -> "MeshIsObjectMixin":
         return cls.from_native(mesh=cls.mesh_from_file_loader(str(file_path)))
-
-
-MeshIsObjectCookbook = TypeVar("MeshIsObjectCookbook", bound=MeshIsObjectMixin)
